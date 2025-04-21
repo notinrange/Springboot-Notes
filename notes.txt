@@ -1,0 +1,385 @@
+SprinBoot Notes -> Convention with Configuration
+
+									Spring Features
+	1. POJO -> Plain Old Java Object
+	2. Dependency Injection
+	3. Security
+	4. MVC
+	5. Rest
+	6. Data
+	7. Batch
+	8. AOP (Aspect Oriented Programming) : Key unit of Modularity in AOP is Aspect
+	
+	
+	Spring : App(WAR) <-> Tomcat Server <-> OS <-> Hardware
+	SpringBoot : App(Embedded Tomcat Server) <-> OS <-> Hardware
+	
+	
+	spring-boot-starter-web,  spring-boot-starter-jdbc,  
+	
+	ConfigurableApplicationContext context = SpringApplication.run(DemoApplication.class, args); // taking application context for gettiing Bean
+	Alien a = context.getBean(Alien.class);
+	a.show();
+	
+	Alien a1 = context.getBean(Alien.class);
+	a1.show();
+	
+	Make Alien Class as Component
+	@Component
+	@Scope(value="prototype") // Making it prototype so when you call contructor n time rather than singleton by default
+	
+	@Component("lap1")
+	public class Laptop{
+	
+		@Override 
+		public String toString(){
+			return "Laptop [lid=" + lid + ", brands=" + brand + "]";
+		}
+		public void compile(){
+			System.out.println("compiling.....");
+		}
+	}
+	
+	public class Alien{
+		
+		@Autowired // Telling Alien is there is Laptop class
+		@Qualifier("lap1") // By default we will call laptop but we can call as lap1 now 
+		private Laptop laptop;
+		public Laptop getLaptop(){
+			return laptop;
+		}
+		public void setLaptop(Laptop laptop){
+			this.laptop = laptop;
+		}
+		public Alien(){
+			super():
+			System.out.println("object created"); // By Default it is Singleton
+		}
+		
+		public void show(){
+			System.out.println("In show");
+			laptop.compile();
+		}
+	
+	}
+	
+	
+	
+					Web App Using SpringBoot
+	package com.rahul.demo;
+	import org.springframework.stereotype.Controller;
+	
+	@Controller
+	public class HomeController{
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public void home(){
+			System.out.println("hi");
+		}
+		
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		@ResponseBody
+		public String home(){
+			return "home";
+		}
+		
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public String home(){
+			
+			return "home.jsp";// returns jsp but you jave to include Tomcat jasper in pom.xml
+		}
+		
+		// in application.properties set 
+		// spring.mvc.view.prefix = /pages/
+		// spring.mvc.view.suffix = .jsp
+		
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public String home(){	
+			return "home";// returns jsp but you jave to include Tomcat jasper in pom.xml
+		}
+		
+		// --------------------------------------WebApp using Spring Boot Accepting Client Data-----------------------------------------------------------
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public String home(HttpServletRequest req, HttpServletResponse res){	
+			HttpSession session = req.getSession();
+			String name = req.getParameter("name");
+			session.setAttribute("name" + name);
+			return "home";// returns jsp but you jave to include Tomcat jasper in pom.xml
+		}
+		
+		// Now in jsp
+		// <body> Welcome ${name}</body>
+		
+		
+		
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public String home(String name, HttpSession session){	
+
+			session.setAttribute("name" + name);
+			return "home";// returns jsp but you jave to include Tomcat jasper in pom.xml
+		}
+		
+		// Now in jsp
+		// <body> Welcome ${name}</body>
+		
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public String home(RequestParam("name") String myName){	
+
+			session.setAttribute("name" + myName);
+			return "home";// returns jsp but you jave to include Tomcat jasper in pom.xml
+		}
+		
+		// Now in jsp
+		// <body> Welcome ${name}</body>
+		
+		@RequestMapping("home")// Now able to request https://localhost:8080/home
+		public ModelAndView home(RequestParam("name") String myName){	
+			ModelAndView mv = new ModelAndView();
+			mv.addObject("name",myName);
+			mv.setViewName("home");
+			return mv;// returns jsp but you jave to include Tomcat jasper in pom.xml
+		}
+		
+		// Now in jsp
+		// <body> Welcome ${name}</body>
+		
+		
+	}
+	
+	
+	
+	
+		--------------------------------------------WebApp using SpringBoot Model Object-------------------------------------------------------
+		
+		
+		
+	
+	Step1 make Alien as Model Object
+	Step2 Make HomeController 
+	@Controller
+	public class HomeController
+	{
+		@RequestMapping("home")
+		public ModelAndView home(Alien alien){
+			ModelAndView mv = new ModelAndView();
+			mv.addObject("obj",alien);
+			mv.setViewName("home);
+			return mv;
+		}
+	}
+	
+	Step3 In JSP output all variable which you defined in Alien
+	<body> ${obj.aid} ${obj.aname} ${obj.lang} </body>
+	
+	
+	
+	----------------------------------------------------SpringBoot JPA MVC H2 Example-------------------------------------------------
+	
+	Step1 Make alien class with toString Method
+	@Enitity (Making my MOdel as h2 Enitity)
+	public class Alien
+	{
+		@Id (Making aid as primary key)
+		@GeneratedValue (Auto gen and inc when new object created)
+		private int aid;
+		private String aname;
+	}
+	
+	Step2 add form in jsp  
+	<body>
+		<form action="addAlien">
+			<input type="text" name="aid"><br>
+			<input type="text" name="aname"><br>
+			<input type="submit">
+		</form>
+		
+		
+		<form action="getAlien">
+			<input type="text" name="aid"><br>
+			<input type="submit">
+		</form>
+	</body>
+	Step3 Setup h2 console in application.properties
+	spring.h2.console.enabled=true
+	spring.datasource.platform=h2
+	spring.datasource.url=jdbc:h2:mem:rahul
+	
+	Step4 Now Start Contoller
+	@Controller
+	public class AlienController
+	{
+	
+		@Autowired 
+		AlienRepo repo;
+		
+		
+		@RequestMapping("/")
+		public String home(){
+			return "home.jsp";
+		}
+		
+		@RequestMapping("/addAlien")
+		public String addAlien(Alien alien)
+		{
+			repo.save(alien);
+			return "home.jsp";
+		}
+		
+		@RequestMapping("/getAlien")
+		public ModelAndView getAlien(@RequestParam int aid)
+		{
+			ModelAndView mv = new ModelAndView("showAlien.jsp");
+			Alien alien = repo.findById(aid).orElse(new Alien());// predefined in repo
+			System.out.println(repo.findByTech("java")); // Need to declare in repo
+			System.out.println(repo.findByAidGreaterThan(102)); // Same Need to declare in repo
+			System.out.println(repo.findByTechSorted("Java");
+			mv.addObject(alien);
+			return mv;
+		}
+		
+		@RequestMapping("/aliens")
+		@ResponseBody
+		public String getAliens()
+		{
+			return repo.findAll().toString();
+		}
+		
+		@RequestMapping("/aliens", produces={"application/xml"})
+		@ResponseBody
+		public List<Alien> getAliens()
+		{
+			return repo.findAll();
+		}
+		
+		@RequestMapping("/alien/102")
+		@ResponseBody
+		public String getAlien()
+		{
+			return repo.findById(102).toString();
+		}
+		
+		@RequestMapping("/alien/{aid}")
+		@ResponseBody
+		public Optional<Alien> getAlien(@PathVariable("aid") int aid)
+		{
+			return repo.findById(aid);
+		}
+		
+		// Spring Boot by default only understands json by converting java object into json with jackson-core
+		// For XML we have to use Jackson Dateformat XML 
+		
+		
+	}
+	
+	Step5 Make interface AlienRepo
+	public interface AlienRepo extends CrudRepository<Alien,Integer>{
+		List<Alien> findByTech(String tech);
+		List<Alien> findByAlidGreaterThan(int aid);
+		// Note : While declaring follow convention
+		
+		
+		// Here we are defining instead of declaring
+		@Query("from Alien where tech=?1 order by aname")
+		List<Alien> findByTechSorted(String tech);
+	
+	}
+	
+	Step 6 Add data.sql
+	insert into alien values (101,'Rahul','Java');
+	insert into alien values (102,'Kiran','Java');
+	insert into alien values (103,'Fevdf','Java');
+	insert into alien values (104,'Rahul','Java');
+	insert into alien values (105,'Rahul','Java');
+	
+	Step7 add showAlien.jsp to show get data by submitting form
+	<body> ${alien}</body>
+	
+	Step8 change normal controller to RestController
+	
+	@RestController
+	public class AlienController{
+		@Autowired 
+		AlienRepo repo;
+		
+		
+		@RequestMapping("/")
+		public String home(){
+			return "home.jsp";
+		}
+		
+		@PostMapping(path = "/alien",consumes={"application/json"})
+		public Alien addAlien(@RequestBody Alien alien)
+		{
+			repo.save(alien);
+			return "home.jsp";
+		}
+		
+		@GetMapping(path="/aliens")
+		public List<Alien> getAliens()
+		{
+			return repo.findAll();
+		}
+		
+		@DeleteMapping("/alien")
+		public String deleteAlien(@PathVariable int aid)
+		{
+			Alien a = repo.getOne(aid);
+			repo.delele(a);
+			return "Deleted Successfully";
+		}
+		
+		@PutMapping(path = "/alien",consumes={"application/json"})
+		public Alien saveOrUpdateAlien(@RequestBody Alien alien)
+		{
+			repo.save(alien);
+			return alien;
+		}
+		
+		
+		
+	}
+	
+	
+	// Step 9 Spring Data Rest father of RestContoller and Dada ji of Controller
+	
+	@RepositoryRestResources(collectionResourceRel="aliens",path="aliens")
+	public interface AlienRepo extends JpaRepository<Alien, Integer>
+	{
+	}
+	// Now No need to Controller for Basic CRUD operations
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
