@@ -83,6 +83,7 @@ public class SecurityConfig {
     //     return new InMemoryUserDetailsManager(user1,user2);
     // }
 
+    // Authentication provider for user object authentication
     @Autowired
     private UserDetailsService userDetailsService;
 
