@@ -4,6 +4,9 @@
 ##### to_string ~ String.valueOf();
 ##### stoi ~ Integer.parseInt();
 
+##### Sorting in desc order on first value [Arrays.sort(valueIndex, (a,b)-> b[0] - a[0]);]
+##### Sorting in ascending order of second value from 0 to k [Arrays.sort(valueWithIndex, 0, k, (a, b) -> a[1] - b[1]);]  
+
 ## StringBuilder
 ```
 StringBuilder sb =  new StringBuilder("Hello");
